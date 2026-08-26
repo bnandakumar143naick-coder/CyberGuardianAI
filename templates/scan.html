@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scan — CyberGuardian AI</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="brand">
+    <span class="icon">🛡️</span>
+    <span>CyberGuardian AI</span>
+  </div>
+  <div class="nav-links">
+    <a href="{{ url_for('main.index') }}">Home</a>
+    <a href="{{ url_for('main.scan_page') }}" class="active">Scan</a>
+    <a href="{{ url_for('main.history_page') }}">History</a>
+  </div>
+</nav>
+
+<div class="container section">
+  <span class="eyebrow">New Scan</span>
+  <h2 style="margin-bottom: 20px;">What would you like to check?</h2>
+
+  <div class="tabs">
+    <div class="tab active" data-tab="image">📷 Photo / Screenshot</div>
+    <div class="tab" data-tab="text">✍️ Paste Text</div>
+    <div class="tab" data-tab="url">🔗 Check URL</div>
+  </div>
+
+  <div id="error-banner" class="error-banner"></div>
+
+  <!-- IMAGE TAB -->
+  <div class="tab-panel" id="panel-image">
+    <div class="card">
+      <div class="upload-zone" id="upload-zone">
+        <div class="icon">📷</div>
+        <p><strong>Tap to take a photo or upload a screenshot</strong></p>
+        <p>JPG, PNG or WEBP — up to 8 MB</p>
+      </div>
+      <!-- capture="environment" enables camera capture on supported mobile browsers,
+           while still allowing normal file selection on desktop -->
+      <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp" capture="environment" style="display:none;">
+
+      <div class="preview-wrap" id="preview-wrap" style="display:none;">
+        <img id="preview-img" src="" alt="Selected image preview">
+      </div>
+
+      <div class="scan-actions" id="image-actions" style="display:none;">
+        <button class="btn btn-outline" id="btn-retake">Choose Different Image</button>
+        <button class="btn btn-primary" id="btn-analyze-image">Analyse Image</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEXT TAB -->
+  <div class="tab-panel" id="panel-text" style="display:none;">
+    <div class="card">
+      <textarea class="text-input" id="text-input" placeholder="Paste the suspicious message here..."></textarea>
+      <div class="scan-actions">
+        <button class="btn btn-primary btn-block" id="btn-analyze-text">Analyse Text</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- URL TAB -->
+  <div class="tab-panel" id="panel-url" style="display:none;">
+    <div class="card">
+      <input type="url" class="url-input" id="url-input" placeholder="https://example.com/verify-account">
+      <div class="scan-actions">
+        <button class="btn btn-primary btn-block" id="btn-analyze-url">Check URL</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading-state" id="loading-state">
+    <div class="spinner"></div>
+    <p>Analysing content — extracting text, links, and behavioural signals...</p>
+  </div>
+</div>
+
+<footer>
+  Your image is analysed and then discarded — CyberGuardian does not keep uploaded photos by default.
+</footer>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script src="{{ url_for('static', filename='js/scanner.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+id,category,sample_text,sample_url,expected_threat
+1,bank_phishing,"Dear Customer, your account will be blocked in 10 minutes. Verify now to avoid suspension.",https://secure-bank-verify-login.example.com/account/verify,PHISHING
+2,fake_prize,"Congratulations! You have won a cash reward of $1000. Claim your prize now by clicking the link.",https://claim-your-reward.example.com/prize,FINANCIAL_SCAM
+3,fake_job,"You have been selected for a work from home job paying $500/day. Pay a small registration fee to confirm your seat.",https://job-registration.example.com/apply,JOB_SCAM
+4,fake_scholarship,"Congratulations, your scholarship of $2000 has been approved. Pay a processing fee to receive the funds.",https://scholarship-claim.example.com/pay,JOB_SCAM
+5,suspicious_url,"Please review the attached document.",http://192.168.1.10/login/verify/account,MALICIOUS_URL
+6,qr_destination,"Scan this QR code to complete your KYC verification immediately.",https://kyc-verify-update.example.com/scan,QR_RISK
+7,safe_message,"Hey, are we still meeting for lunch tomorrow at 1pm?",,SAFE

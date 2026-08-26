@@ -1,0 +1,22 @@
+# Environment / secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+
+# Database (generated at runtime)
+database/*.db
+
+# Uploaded files (temporary, not meant to be committed)
+uploads/*
+!uploads/.gitkeep
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
