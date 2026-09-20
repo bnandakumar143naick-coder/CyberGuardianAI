@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}CyberGuardian AI — Premium Cybersecurity Shield{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/design-system.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Top Bar -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="topbar-brand">🛡️ CyberGuardian AI</div>
+      </div>
+      <div class="topbar-right">
+        <div class="protection-status active">
+          PROTECTION ACTIVE
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span>🛡️</span>
+        <span>Guardian</span>
+      </div>
+      <nav>
+        <ul class="sidebar-nav">
+          <li class="sidebar-nav-item">
+            <a href="{{ url_for('main.command_center') }}" class="sidebar-nav-link {% if 'command' in request.path %}active{% endif %}">
+              <span class="icon">📊</span>
+              <span>Command Center</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="{{ url_for('main.notification_shield') }}" class="sidebar-nav-link {% if 'notification' in request.path %}active{% endif %}">
+              <span class="icon">🔔</span>
+              <span>Notifications</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="{{ url_for('main.threat_scanner') }}" class="sidebar-nav-link {% if 'scanner' in request.path %}active{% endif %}">
+              <span class="icon">🔍</span>
+              <span>Scanner</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="{{ url_for('main.threat_investigation') }}" class="sidebar-nav-link {% if 'investigation' in request.path %}active{% endif %}">
+              <span class="icon">🧬</span>
+              <span>Investigations</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="{{ url_for('main.url_intelligence') }}" class="sidebar-nav-link {% if 'url-intel' in request.path %}active{% endif %}">
+              <span class="icon">🔗</span>
+              <span>URL Intel</span>
+            </a>
+          </li>
+          <div class="sidebar-divider"></div>
+          <li class="sidebar-nav-item">
+            <a href="{{ url_for('main.ai_copilot') }}" class="sidebar-nav-link {% if 'copilot' in request.path %}active{% endif %}">
+              <span class="icon">🧠</span>
+              <span>AI Copilot</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="{{ url_for('main.analytics') }}" class="sidebar-nav-link {% if 'analytics' in request.path %}active{% endif %}">
+              <span class="icon">📈</span>
+              <span>Analytics</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="{{ url_for('main.protection_center') }}" class="sidebar-nav-link {% if 'protection' in request.path %}active{% endif %}">
+              <span class="icon">🛡️</span>
+              <span>Protection</span>
+            </a>
+          </li>
+          <div class="sidebar-divider"></div>
+          <li class="sidebar-nav-item">
+            <a href="{{ url_for('main.privacy_settings') }}" class="sidebar-nav-link {% if 'privacy' in request.path or 'settings' in request.path %}active{% endif %}">
+              <span class="icon">⚙️</span>
+              <span>Settings</span>
+            </a>
+          </li>
+          <li class="sidebar-nav-item">
+            <a href="{{ url_for('main.index') }}" class="sidebar-nav-link">
+              <span class="icon">🏠</span>
+              <span>Home</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="page">
+        {% block content %}{% endblock %}
+      </div>
+    </main>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/app-shell.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

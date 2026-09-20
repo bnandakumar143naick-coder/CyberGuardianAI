@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+
+{% block title %}Notification Shield — CyberGuardian AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Notification Shield</h1>
+  <p class="page-subtitle">Android Notification Shield — real phone notifications analyzed by CyberGuardian AI</p>
+</div>
+
+<!-- How it works (honest scope: the website itself cannot read phone notifications) -->
+<div class="info-banner">
+  <strong>📱 How this works:</strong> This website does not have access to your phone. Notifications are captured by the
+  <strong>CyberGuardian AI Android app</strong> (Android <code>NotificationListenerService</code>) and only after you explicitly grant
+  <em>Notification Access</em> in Android Settings. The app sends the notification text to this server for analysis, and every scan appears below and in History.
+  <br><br>
+  <strong>Enable Notification Access:</strong> on the phone, open the CyberGuardian AI app → tap <em>Enable Notification Access</em>
+  (opens Android Settings › Notification access) → switch <em>CyberGuardian AI</em> on.
+</div>
+
+<!-- Connection Status -->
+<div class="card" style="margin-bottom: 24px;">
+  <div class="card-header">
+    <h2 class="card-title">Android Notification Shield</h2>
+  </div>
+  <div class="card-content">
+    <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.95rem;">
+      <div><span id="dot-backend" style="color: var(--text-muted);">●</span> Backend: <strong id="status-backend">Checking…</strong></div>
+      <div><span id="dot-listener" style="color: var(--text-muted);">●</span> Notification Listener: <strong>Android</strong>
+        <span id="status-listener" style="color: var(--text-muted); font-size: 0.85rem;">— waiting for the first Android notification</span></div>
+      <div><span id="dot-engine" style="color: var(--text-muted);">●</span> Analysis Engine: <strong id="status-engine">Checking…</strong></div>
+    </div>
+  </div>
+</div>
+
+<!-- Live Android notifications (real scans posted by the Android app) -->
+<div class="card" style="margin-bottom: 24px;">
+  <div class="card-header" style="margin-bottom: 20px;">
+    <h2 class="card-title">Live Android Notifications</h2>
+  </div>
+  <div id="android-feed" style="display: flex; flex-direction: column; gap: 12px;">
+    <div class="empty-state">
+      <div class="empty-state-icon">📱</div>
+      <div class="empty-state-title">No Android notifications yet</div>
+      <div class="empty-state-text">Notifications analyzed by the CyberGuardian AI Android app show up here within a few seconds, and are also saved to History.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Supported Apps -->
+<div class="card" style="margin-bottom: 24px;">
+  <div class="card-header">
+    <h2 class="card-title">Supported Applications</h2>
+  </div>
+  <div class="card-content">
+    <div class="grid grid-4">
+      <div style="text-align: center; padding: 16px; background: var(--surface-raised); border-radius: var(--radius-md); border: 1px solid var(--border);">
+        <div style="font-size: 1.6rem; margin-bottom: 8px;">💬</div>
+        <div style="font-size: 0.85rem; font-weight: 600;">WhatsApp</div>
+      </div>
+      <div style="text-align: center; padding: 16px; background: var(--surface-raised); border-radius: var(--radius-md); border: 1px solid var(--border);">
+        <div style="font-size: 1.6rem; margin-bottom: 8px;">📷</div>
+        <div style="font-size: 0.85rem; font-weight: 600;">Instagram</div>
+      </div>
+      <div style="text-align: center; padding: 16px; background: var(--surface-raised); border-radius: var(--radius-md); border: 1px solid var(--border);">
+        <div style="font-size: 1.6rem; margin-bottom: 8px;">✉️</div>
+        <div style="font-size: 0.85rem; font-weight: 600;">Gmail</div>
+      </div>
+      <div style="text-align: center; padding: 16px; background: var(--surface-raised); border-radius: var(--radius-md); border: 1px solid var(--border);">
+        <div style="font-size: 1.6rem; margin-bottom: 8px;">✈️</div>
+        <div style="font-size: 0.85rem; font-weight: 600;">Telegram</div>
+      </div>
+      <div style="text-align: center; padding: 16px; background: var(--surface-raised); border-radius: var(--radius-md); border: 1px solid var(--border);">
+        <div style="font-size: 1.6rem; margin-bottom: 8px;">📱</div>
+        <div style="font-size: 0.85rem; font-weight: 600;">SMS</div>
+      </div>
+      <div style="text-align: center; padding: 16px; background: var(--surface-raised); border-radius: var(--radius-md); border: 1px solid var(--border);">
+        <div style="font-size: 1.6rem; margin-bottom: 8px;">🏦</div>
+        <div style="font-size: 0.85rem; font-weight: 600;">Banking</div>
+      </div>
+      <div style="text-align: center; padding: 16px; background: var(--surface-raised); border-radius: var(--radius-md); border: 1px solid var(--border);">
+        <div style="font-size: 1.6rem; margin-bottom: 8px;">🛍️</div>
+        <div style="font-size: 0.85rem; font-weight: 600;">Shopping</div>
+      </div>
+      <div style="text-align: center; padding: 16px; background: var(--surface-raised); border-radius: var(--radius-md); border: 1px solid var(--border);">
+        <div style="font-size: 1.6rem; margin-bottom: 8px;">📲</div>
+        <div style="font-size: 0.85rem; font-weight: 600;">Other Apps</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Demo Simulation (fallback when no Android device is connected) -->
+<div class="card">
+  <div class="card-header" style="margin-bottom: 20px;">
+    <h2 class="card-title">Demo Simulation <span class="status-indicator status-simulation" style="margin-left: 8px;">Sample data</span></h2>
+  </div>
+  <div id="notifications-container" style="display: flex; flex-direction: column; gap: 12px;">
+    <!-- Notifications will be loaded by JavaScript -->
+  </div>
+</div>
+
+<!-- Sample Data Toggle -->
+<div style="margin-top: 24px; display: flex; gap: 12px;">
+  <button class="btn btn-secondary" onclick="loadSampleNotifications()">Load Sample Notifications</button>
+  <button class="btn btn-outline" onclick="clearNotifications()">Clear All</button>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Sample simulated notifications for demonstration. These are display
+// hints only (source/content/an indicative score) — the real threat
+// classification and risk score always come from the backend engines
+// when "Analyze" is clicked, never from these hardcoded numbers.
+const SAMPLE_NOTIFICATIONS = [
+  {
+    source: 'WhatsApp',
+    content: 'URGENT: Your bank account will be blocked today. Verify your KYC immediately at https://example-security-login.com',
+    threat_type: 'FINANCIAL_SCAM',
+    risk_score: 91
+  },
+  {
+    source: 'SMS',
+    content: 'Congratulations! You have been selected for a work-from-home job. Pay Rs 999 registration fee to confirm.',
+    threat_type: 'JOB_SCAM',
+    risk_score: 68
+  },
+  {
+    source: 'SMS',
+    content: 'Your parcel delivery failed. Pay Rs 25 to reschedule delivery.',
+    threat_type: 'DELIVERY_SCAM',
+    risk_score: 55
+  },
+  {
+    source: 'Gmail',
+    content: 'Your account security has expired. Login and verify your password immediately to avoid suspension: https://account-verify-secure.com',
+    threat_type: 'CREDENTIAL_THEFT',
+    risk_score: 84
+  },
+  {
+    source: 'Instagram',
+    content: 'Someone tried to access your account. Verify your password now: instagram-verify.scam',
+    threat_type: 'PHISHING',
+    risk_score: 80
+  },
+  {
+    source: 'Telegram',
+    content: 'Work from home: Earn Rs 5000/day! No experience needed. Register now with a small fee.',
+    threat_type: 'JOB_SCAM',
+    risk_score: 65
+  },
+  {
+    source: 'Shopping',
+    content: 'Your order has been shipped. Track here: delivery-tracker.xyz',
+    threat_type: 'SUSPICIOUS',
+    risk_score: 30
+  },
+  {
+    source: 'WhatsApp',
+    content: 'Hey, are we still meeting for lunch tomorrow?',
+    threat_type: 'SAFE',
+    risk_score: 0
+  }
+];
+
+function getRiskLevelClass(score) {
+  if (score >= 75) return 'CRITICAL';
+  if (score >= 60) return 'HIGH';
+  if (score >= 40) return 'MEDIUM';
+  return 'LOW';
+}
+
+function createNotificationCard(notification) {
+  const riskLevel = getRiskLevelClass(notification.risk_score);
+
+  const card = document.createElement('div');
+  card.className = 'notification-card';
+
+  const left = document.createElement('div');
+  const sourceEl = document.createElement('div');
+  sourceEl.className = 'notification-source';
+  sourceEl.textContent = notification.source;
+  const contentEl = document.createElement('div');
+  contentEl.className = 'notification-content';
+  contentEl.textContent = notification.content; // textContent, never innerHTML — never render content as HTML
+  left.appendChild(sourceEl);
+  left.appendChild(contentEl);
+
+  const right = document.createElement('div');
+  right.className = 'notification-threat';
+  const label = document.createElement('div');
+  label.className = 'notification-threat-label';
+  label.textContent = 'Risk Score';
+  const scoreEl = document.createElement('div');
+  scoreEl.className = 'notification-threat-score';
+  scoreEl.textContent = notification.risk_score;
+  const btn = document.createElement('button');
+  btn.className = 'notification-action';
+  btn.textContent = 'Analyze';
+  btn.addEventListener('click', (evt) => {
+    evt.stopPropagation();
+    analyzeNotification(notification.source, notification.content, btn);
+  });
+  right.appendChild(label);
+  right.appendChild(scoreEl);
+  right.appendChild(btn);
+
+  card.appendChild(left);
+  card.appendChild(right);
+  card.addEventListener('click', () => analyzeNotification(notification.source, notification.content, btn));
+
+  return card;
+}
+
+function loadSampleNotifications() {
+  const container = document.getElementById('notifications-container');
+  container.innerHTML = '';
+  SAMPLE_NOTIFICATIONS.forEach(n => container.appendChild(createNotificationCard(n)));
+}
+
+function clearNotifications() {
+  document.getElementById('notifications-container').innerHTML = `
+    <div class="empty-state">
+      <div class="empty-state-icon">🔔</div>
+      <div class="empty-state-title">No Notifications</div>
+      <div class="empty-state-text">Demo Simulation is empty. Load sample notifications to try the analysis without a phone.</div>
+      <button class="btn btn-primary btn-small" onclick="loadSampleNotifications()">Load Samples</button>
+    </div>
+  `;
+}
+
+function analyzeNotification(source, content, buttonEl) {
+  if (buttonEl) {
+    buttonEl.disabled = true;
+    buttonEl.textContent = 'Analyzing…';
+  }
+
+  fetch('/api/v2/analyze-unified', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      text: content,
+      source_app: source,
+      sender: source
+    })
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success && data.scan_id) {
+        window.location.href = `/threat-investigation?id=${data.scan_id}`;
+      } else {
+        if (window.CG && window.CG.showNotification) {
+          window.CG.showNotification(data.message || 'Analysis failed. Please try again.', 'error');
+        }
+        if (buttonEl) {
+          buttonEl.disabled = false;
+          buttonEl.textContent = 'Analyze';
+        }
+      }
+    })
+    .catch(err => {
+      console.error('Analysis error:', err);
+      if (buttonEl) {
+        buttonEl.disabled = false;
+        buttonEl.textContent = 'Analyze';
+      }
+    });
+}
+
+// ---------------------------------------------------------------------
+// Real Android notifications: connection status + live feed.
+// Data comes from the same backend the Android app posts to
+// (/api/history + /api/v2/scan/<id>) — nothing here is simulated.
+// ---------------------------------------------------------------------
+const androidDetailCache = {};
+
+function setDot(id, color) {
+  const el = document.getElementById(id);
+  if (el) el.style.color = color;
+}
+
+async function refreshBackendStatus() {
+  try {
+    const res = await fetch('/api/health', { cache: 'no-store' });
+    const data = await res.json();
+    const ok = res.ok && data.status === 'ok';
+    document.getElementById('status-backend').textContent = ok ? 'Connected' : 'Error';
+    document.getElementById('status-engine').textContent = ok ? 'Online' : 'Offline';
+    setDot('dot-backend', ok ? 'var(--risk-low)' : 'var(--risk-critical)');
+    setDot('dot-engine', ok ? 'var(--risk-low)' : 'var(--risk-critical)');
+  } catch (e) {
+    document.getElementById('status-backend').textContent = 'Unreachable';
+    document.getElementById('status-engine').textContent = 'Offline';
+    setDot('dot-backend', 'var(--risk-critical)');
+    setDot('dot-engine', 'var(--risk-critical)');
+  }
+}
+
+function timeAgo(iso) {
+  const secs = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 1000));
+  if (secs < 60) return secs + 's ago';
+  if (secs < 3600) return Math.round(secs / 60) + ' min ago';
+  return Math.round(secs / 3600) + ' h ago';
+}
+
+function createAndroidCard(scan, detail) {
+  const card = document.createElement('div');
+  card.className = 'notification-card';
+
+  const left = document.createElement('div');
+  const sourceEl = document.createElement('div');
+  sourceEl.className = 'notification-source';
+  const app = detail && detail.context_analysis ? detail.context_analysis.source_app : 'Android';
+  sourceEl.textContent = app + ' · Android · ' + timeAgo(scan.timestamp);
+  const contentEl = document.createElement('div');
+  contentEl.className = 'notification-content';
+  contentEl.textContent = (detail && detail.extracted_text) ? detail.extracted_text : (scan.summary || '');
+  left.appendChild(sourceEl);
+  left.appendChild(contentEl);
+
+  const right = document.createElement('div');
+  right.className = 'notification-threat';
+  const label = document.createElement('div');
+  label.className = 'notification-threat-label';
+  const threatText = (scan.threat_type || '').replace(/_/g, ' ');
+  label.textContent = threatText.toUpperCase() === String(scan.risk_level).toUpperCase()
+    ? scan.risk_level
+    : threatText + ' · ' + scan.risk_level;
+  const scoreEl = document.createElement('div');
+  scoreEl.className = 'notification-threat-score';
+  scoreEl.textContent = scan.risk_score + '/100';
+  const btn = document.createElement('button');
+  btn.className = 'notification-action';
+  btn.textContent = 'Investigate';
+  right.appendChild(label);
+  right.appendChild(scoreEl);
+  right.appendChild(btn);
+
+  card.appendChild(left);
+  card.appendChild(right);
+  card.addEventListener('click', () => { window.location.href = '/threat-investigation?id=' + scan.id; });
+  return card;
+}
+
+async function refreshAndroidFeed() {
+  try {
+    const res = await fetch('/api/history?limit=50', { cache: 'no-store' });
+    const data = await res.json();
+    if (!data.success) return;
+    const androidScans = data.scans.filter(s => s.input_type === 'android_notification').slice(0, 10);
+
+    const listenerEl = document.getElementById('status-listener');
+    if (androidScans.length === 0) {
+      setDot('dot-listener', 'var(--text-muted)');
+      listenerEl.textContent = '— waiting for the first Android notification';
+      return;
+    }
+    setDot('dot-listener', 'var(--risk-low)');
+    listenerEl.textContent = '— last notification received ' + timeAgo(androidScans[0].timestamp);
+
+    // Fetch full detail (source app + analyzed text) once per scan and cache it.
+    await Promise.all(androidScans.map(async s => {
+      if (androidDetailCache[s.id]) return;
+      try {
+        const r = await fetch('/api/v2/scan/' + s.id);
+        androidDetailCache[s.id] = await r.json();
+      } catch (e) { androidDetailCache[s.id] = null; }
+    }));
+
+    const container = document.getElementById('android-feed');
+    container.innerHTML = '';
+    androidScans.forEach(s => container.appendChild(createAndroidCard(s, androidDetailCache[s.id])));
+  } catch (e) {
+    console.error('Android feed refresh failed', e);
+  }
+}
+
+window.addEventListener('load', () => {
+  refreshBackendStatus();
+  refreshAndroidFeed();
+  setInterval(refreshBackendStatus, 10000);
+  setInterval(refreshAndroidFeed, 3000);
+});
+
+// Load samples on page load
+window.addEventListener('load', loadSampleNotifications);
+</script>
+{% endblock %}

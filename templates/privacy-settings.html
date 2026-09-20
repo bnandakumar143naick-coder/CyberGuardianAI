@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy & Settings — CyberGuardian AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Privacy & Settings</h1>
+  <p class="page-subtitle">Control how CyberGuardian processes your data</p>
+</div>
+
+<!-- Settings Tabs -->
+<div class="tabs" style="margin-bottom: 24px;">
+  <button class="tab active" onclick="switchTab('privacy')">Privacy</button>
+  <button class="tab" onclick="switchTab('data')">Data Controls</button>
+  <button class="tab" onclick="switchTab('notification')">Notifications</button>
+  <button class="tab" onclick="switchTab('advanced')">Advanced</button>
+</div>
+
+<!-- Privacy Settings -->
+<div id="tab-privacy" class="card" style="display: block;">
+  <div class="card-header">
+    <h2 class="card-title">Privacy Center</h2>
+  </div>
+  <div class="card-content">
+    <div style="display: grid; gap: 20px;">
+      <div style="padding: 16px; background: var(--surface-raised); border-radius: var(--radius-md);">
+        <div style="font-weight: 600; margin-bottom: 8px;">📊 Data Collection</div>
+        <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">CyberGuardian analyzes suspicious content locally. No raw messages are sent to external servers.</p>
+      </div>
+      <div style="padding: 16px; background: var(--surface-raised); border-radius: var(--radius-md);">
+        <div style="font-weight: 600; margin-bottom: 8px;">🔒 Secure Processing</div>
+        <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">All analysis happens on your device or server. We don't store sensitive personal information.</p>
+      </div>
+      <div style="padding: 16px; background: var(--surface-raised); border-radius: var(--radius-md);">
+        <div style="font-weight: 600; margin-bottom: 8px;">🚫 No Third-Party Sharing</div>
+        <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">We never sell or share your scan history or personal data with third parties.</p>
+      </div>
+      <div style="padding: 16px; background: var(--surface-raised); border-radius: var(--radius-md);">
+        <div style="font-weight: 6 00; margin-bottom: 8px;">📱 Notification Simulation</div>
+        <p style="margin: 0; color: var(--text-muted); font-size: 0.9rem;">The notification feed is a prototype demonstration. Real notification integration comes in Phase 2.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Data Controls -->
+<div id="tab-data" class="card" style="display: none;">
+  <div class="card-header">
+    <h2 class="card-title">Data Management</h2>
+  </div>
+  <div class="card-content">
+    <div style="display: grid; gap: 16px;">
+      <div>
+        <div style="font-weight: 600; margin-bottom: 8px;">Clear Scan History</div>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0 0 12px;">Remove all scan records and threat analysis from your local database.</p>
+        <button class="btn btn-outline" onclick="confirmClearHistory()">Clear All History</button>
+      </div>
+
+      <div style="border-top: 1px solid var(--border); padding-top: 16px;">
+        <div style="font-weight: 600; margin-bottom: 8px;">Export Data</div>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0 0 12px;">Download your scan history as JSON for backup or analysis.</p>
+        <button class="btn btn-secondary" onclick="exportData()">Export as JSON</button>
+      </div>
+
+      <div style="border-top: 1px solid var(--border); padding-top: 16px;">
+        <div style="font-weight: 600; margin-bottom: 8px;">Data Retention</div>
+        <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0 0 12px;">Scan records are kept for 90 days by default and automatically deleted after.</p>
+        <div class="input-group" style="margin-bottom: 0;">
+          <label class="input-label">Retention Period (days)</label>
+          <select class="select-field">
+            <option>30 days</option>
+            <option selected>90 days</option>
+            <option>180 days</option>
+            <option>1 year</option>
+            <option>Indefinite</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Notification Settings -->
+<div id="tab-notification" class="card" style="display: none;">
+  <div class="card-header">
+    <h2 class="card-title">Notification Preferences</h2>
+  </div>
+  <div class="card-content">
+    <div style="display: grid; gap: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-weight: 600; margin-bottom: 4px;">High-Risk Alerts</div>
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Notify immediately on critical threats</p>
+        </div>
+        <input type="checkbox" checked style="width: 20px; height: 20px; cursor: pointer;">
+      </div>
+
+      <div style="border-top: 1px solid var(--border); padding-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-weight: 600; margin-bottom: 4px;">Medium-Risk Alerts</div>
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Notify on suspicious patterns detected</p>
+        </div>
+        <input type="checkbox" checked style="width: 20px; height: 20px; cursor: pointer;">
+      </div>
+
+      <div style="border-top: 1px solid var(--border); padding-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-weight: 600; margin-bottom: 4px;">Daily Summary</div>
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Receive daily security activity summary</p>
+        </div>
+        <input type="checkbox" style="width: 20px; height: 20px; cursor: pointer;">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Advanced Settings -->
+<div id="tab-advanced" class="card" style="display: none;">
+  <div class="card-header">
+    <h2 class="card-title">Advanced Settings</h2>
+  </div>
+  <div class="card-content">
+    <div style="display: grid; gap: 16px;">
+      <div>
+        <label class="input-label">Risk Score Sensitivity</label>
+        <select class="select-field">
+          <option>Conservative (Higher threshold for alerts)</option>
+          <option selected>Balanced (Recommended)</option>
+          <option>Aggressive (Lower threshold, more alerts)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="input-label">Pattern Detection</label>
+        <select class="select-field">
+          <option selected>Standard (Common threat patterns)</option>
+          <option>Advanced (Detailed signal analysis)</option>
+          <option>Minimal (Quick checks only)</option>
+        </select>
+      </div>
+
+      <div style="border-top: 1px solid var(--border); padding-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-weight: 600; margin-bottom: 4px;">Debug Mode</div>
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Enable detailed logging for troubleshooting</p>
+        </div>
+        <input type="checkbox" style="width: 20px; height: 20px; cursor: pointer;">
+      </div>
+
+      <div style="border-top: 1px solid var(--border); padding-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-weight: 600; margin-bottom: 4px;">Telemetry</div>
+          <p style="color: var(--text-muted); font-size: 0.85rem; margin: 0;">Help improve CyberGuardian by sharing anonymous usage data</p>
+        </div>
+        <input type="checkbox" checked style="width: 20px; height: 20px; cursor: pointer;">
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchTab(tabName) {
+  // Hide all tabs
+  document.querySelectorAll('[id^="tab-"]').forEach(tab => {
+    tab.style.display = 'none';
+  });
+  
+  // Show selected tab
+  document.getElementById(`tab-${tabName}`).style.display = 'block';
+  
+  // Update button states
+  document.querySelectorAll('.tab').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function confirmClearHistory() {
+  if (confirm('Are you sure? This will permanently delete all scan records.')) {
+    // In Phase 2: implement actual deletion
+    alert('History cleared');
+  }
+}
+
+function exportData() {
+  fetch('/api/history?limit=999')
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        const json = JSON.stringify(data.scans, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `cyberguardian-export-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    })
+    .catch(err => alert('Export failed: ' + err.message));
+}
+</script>
+{% endblock %}

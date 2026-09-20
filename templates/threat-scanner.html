@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+
+{% block title %}Threat Scanner — CyberGuardian AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Threat Scanner</h1>
+  <p class="page-subtitle">Analyze messages, URLs, emails, screenshots, and QR codes</p>
+</div>
+
+<!-- Tab Navigation -->
+<div class="tabs" style="margin-bottom: 24px;">
+  <button class="tab active" onclick="switchTab('text')">📝 Message</button>
+  <button class="tab" onclick="switchTab('url')">🔗 URL</button>
+  <button class="tab" onclick="switchTab('email')">✉️ Email</button>
+  <button class="tab" onclick="switchTab('image')">📸 Screenshot</button>
+  <button class="tab" onclick="switchTab('qr')">⊞ QR Code</button>
+</div>
+
+<!-- Text Analysis -->
+<div id="tab-text" class="card" style="display: block;">
+  <div class="card-header">
+    <h3 class="card-title">Analyze Message Text</h3>
+  </div>
+  <div class="card-content">
+    <div class="input-group">
+      <label class="input-label">Paste suspicious message or text</label>
+      <textarea id="text-input" class="textarea-field" placeholder="Paste the suspicious message, chat text, or content you want to analyze..."></textarea>
+    </div>
+    <button class="btn btn-primary btn-large btn-block" onclick="analyzeText()">Analyze Threat</button>
+  </div>
+</div>
+
+<!-- URL Analysis -->
+<div id="tab-url" class="card" style="display: none;">
+  <div class="card-header">
+    <h3 class="card-title">Analyze URL</h3>
+  </div>
+  <div class="card-content">
+    <div class="input-group">
+      <label class="input-label">Enter suspicious URL</label>
+      <input id="url-input" class="input-field" type="url" placeholder="https://example.com or http://suspicious-link.com">
+    </div>
+    <button class="btn btn-primary btn-large btn-block" onclick="analyzeURL()">Analyze URL</button>
+  </div>
+</div>
+
+<!-- Email Analysis -->
+<div id="tab-email" class="card" style="display: none;">
+  <div class="card-header">
+    <h3 class="card-title">Analyze Email</h3>
+  </div>
+  <div class="card-content">
+    <div class="input-group">
+      <label class="input-label">Paste full email content</label>
+      <textarea id="email-input" class="textarea-field" placeholder="Paste the suspicious email content including subject, body, and links..."></textarea>
+    </div>
+    <button class="btn btn-primary btn-large btn-block" onclick="analyzeEmail()">Analyze Email</button>
+  </div>
+</div>
+
+<!-- Image/Screenshot Analysis -->
+<div id="tab-image" class="card" style="display: none;">
+  <div class="card-header">
+    <h3 class="card-title">Analyze Screenshot</h3>
+  </div>
+  <div class="card-content">
+    <div class="input-group">
+      <label class="input-label">Upload screenshot or image</label>
+      <div class="upload-zone" id="image-upload-zone" onclick="document.getElementById('image-input').click()" style="border: 2px dashed var(--border); padding: 40px; text-align: center; cursor: pointer; border-radius: var(--radius-lg); background: var(--surface-raised);">
+        <div style="font-size: 2rem; margin-bottom: 12px;">📸</div>
+        <p style="color: var(--text-muted); margin: 0; font-size: 0.9rem;">Drop image or click to upload</p>
+        <p style="color: var(--text-muted); font-size: 0.8rem; margin: 8px 0 0;">JPG, PNG, WebP up to 8 MB</p>
+        <input id="image-input" type="file" accept="image/*" style="display: none;" onchange="previewImage(event)">
+      </div>
+      <div id="image-preview" style="margin-top: 16px; display: none;">
+        <img id="preview-img" style="max-width: 100%; max-height: 300px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+      </div>
+    </div>
+    <button class="btn btn-primary btn-large btn-block" onclick="analyzeImage()">Analyze Image</button>
+  </div>
+</div>
+
+<!-- QR Code Analysis -->
+<div id="tab-qr" class="card" style="display: none;">
+  <div class="card-header">
+    <h3 class="card-title">Analyze QR Code</h3>
+  </div>
+  <div class="card-content">
+    <div class="input-group">
+      <label class="input-label">Upload QR code image</label>
+      <div class="upload-zone" id="qr-upload-zone" onclick="document.getElementById('qr-input').click()" style="border: 2px dashed var(--border); padding: 40px; text-align: center; cursor: pointer; border-radius: var(--radius-lg); background: var(--surface-raised);">
+        <div style="font-size: 2rem; margin-bottom: 12px;">⊞</div>
+        <p style="color: var(--text-muted); margin: 0; font-size: 0.9rem;">Drop QR code image or click to upload</p>
+        <p style="color: var(--text-muted); font-size: 0.8rem; margin: 8px 0 0;">JPG, PNG, WebP up to 8 MB</p>
+        <input id="qr-input" type="file" accept="image/*" style="display: none;" onchange="previewQR(event)">
+      </div>
+      <div id="qr-preview" style="margin-top: 16px; display: none;">
+        <img id="preview-qr" style="max-width: 200px; max-height: 200px; border-radius: var(--radius-md); border: 1px solid var(--border);">
+      </div>
+    </div>
+    <button class="btn btn-primary btn-large btn-block" onclick="analyzeQR()">Analyze QR Code</button>
+  </div>
+</div>
+
+<!-- Loading State -->
+<div id="loading-state" class="loading-state" style="display: none; margin-top: 24px;">
+  <div class="spinner"></div>
+  <p>Analyzing threat patterns...</p>
+</div>
+
+<!-- Error Banner -->
+<div id="error-banner" class="error-banner" style="display: none; margin-top: 16px;">
+  <div class="error-banner-title">Analysis Error</div>
+  <div class="error-banner-text" id="error-text"></div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Tab switching
+function switchTab(tabName) {
+  // Hide all tabs
+  document.querySelectorAll('.card').forEach(tab => {
+    if (tab.id.startsWith('tab-')) {
+      tab.style.display = 'none';
+    }
+  });
+  
+  // Show selected tab
+  document.getElementById(`tab-${tabName}`).style.display = 'block';
+  
+  // Update button states
+  document.querySelectorAll('.tab').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+// Image preview
+function previewImage(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      document.getElementById('preview-img').src = e.target.result;
+      document.getElementById('image-preview').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function previewQR(event) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      document.getElementById('preview-qr').src = e.target.result;
+      document.getElementById('qr-preview').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+// Analysis functions
+function showLoading() {
+  document.getElementById('loading-state').style.display = 'flex';
+  document.getElementById('error-banner').style.display = 'none';
+}
+
+function hideLoading() {
+  document.getElementById('loading-state').style.display = 'none';
+}
+
+function showError(message) {
+  document.getElementById('error-text').textContent = message;
+  document.getElementById('error-banner').style.display = 'block';
+}
+
+function analyzeText() {
+  const text = document.getElementById('text-input').value.trim();
+  if (!text) {
+    showError('Please paste some text to analyze');
+    return;
+  }
+  
+  showLoading();
+  fetch('/api/analyze-text', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text: text })
+  })
+  .then(r => r.json())
+  .then(data => {
+    hideLoading();
+    if (data.success) {
+      // Store result in session and redirect to result page
+      sessionStorage.setItem('scanResult', JSON.stringify(data));
+      window.location.href = '/result';
+    } else {
+      showError(data.message || 'Analysis failed');
+    }
+  })
+  .catch(err => {
+    hideLoading();
+    showError('Network error: ' + err.message);
+  });
+}
+
+function analyzeURL() {
+  const url = document.getElementById('url-input').value.trim();
+  if (!url) {
+    showError('Please enter a URL to analyze');
+    return;
+  }
+  
+  showLoading();
+  fetch('/api/analyze-url', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url: url })
+  })
+  .then(r => r.json())
+  .then(data => {
+    hideLoading();
+    if (data.success) {
+      sessionStorage.setItem('scanResult', JSON.stringify(data));
+      window.location.href = '/result';
+    } else {
+      showError(data.message || 'Analysis failed');
+    }
+  })
+  .catch(err => {
+    hideLoading();
+    showError('Network error: ' + err.message);
+  });
+}
+
+function analyzeEmail() {
+  const email = document.getElementById('email-input').value.trim();
+  if (!email) {
+    showError('Please paste email content to analyze');
+    return;
+  }
+  
+  showLoading();
+  fetch('/api/analyze-text', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text: email })
+  })
+  .then(r => r.json())
+  .then(data => {
+    hideLoading();
+    if (data.success) {
+      sessionStorage.setItem('scanResult', JSON.stringify(data));
+      window.location.href = '/result';
+    } else {
+      showError(data.message || 'Analysis failed');
+    }
+  })
+  .catch(err => {
+    hideLoading();
+    showError('Network error: ' + err.message);
+  });
+}
+
+function analyzeImage() {
+  const file = document.getElementById('image-input').files[0];
+  if (!file) {
+    showError('Please select an image to analyze');
+    return;
+  }
+  
+  const formData = new FormData();
+  formData.append('image', file);
+  
+  showLoading();
+  fetch('/api/analyze-image', {
+    method: 'POST',
+    body: formData
+  })
+  .then(r => r.json())
+  .then(data => {
+    hideLoading();
+    if (data.success) {
+      sessionStorage.setItem('scanResult', JSON.stringify(data));
+      window.location.href = '/result';
+    } else {
+      showError(data.message || 'Analysis failed');
+    }
+  })
+  .catch(err => {
+    hideLoading();
+    showError('Network error: ' + err.message);
+  });
+}
+
+function analyzeQR() {
+  const file = document.getElementById('qr-input').files[0];
+  if (!file) {
+    showError('Please select a QR code image');
+    return;
+  }
+  
+  const formData = new FormData();
+  formData.append('image', file);
+  
+  showLoading();
+  fetch('/api/analyze-qr', {
+    method: 'POST',
+    body: formData
+  })
+  .then(r => r.json())
+  .then(data => {
+    hideLoading();
+    if (data.success) {
+      sessionStorage.setItem('scanResult', JSON.stringify(data));
+      window.location.href = '/result';
+    } else {
+      showError(data.message || 'Analysis failed');
+    }
+  })
+  .catch(err => {
+    hideLoading();
+    showError('Network error: ' + err.message);
+  });
+}
+</script>
+{% endblock %}

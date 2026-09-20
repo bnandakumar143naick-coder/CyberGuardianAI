@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}AI Cyber Copilot — CyberGuardian AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">AI Cyber Copilot</h1>
+  <p class="page-subtitle">Ask questions about a specific detected event and get evidence-grounded answers</p>
+</div>
+
+<div class="info-banner">
+  <strong>ℹ️ How this works:</strong> The Copilot answers using CyberGuardian's own stored evidence
+  and risk breakdown for the investigation you select below — it does not call an external AI
+  service, so it always works and never invents evidence beyond what CyberGuardian actually detected.
+</div>
+
+<!-- Investigation selector -->
+<div class="card" style="margin-bottom: 20px;">
+  <div class="card-content">
+    <label for="investigation-select" style="display:block; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 8px;">
+      Select a security event to discuss
+    </label>
+    <select id="investigation-select" class="input-field" style="margin: 0;">
+      <option value="">Loading recent investigations…</option>
+    </select>
+  </div>
+</div>
+
+<!-- Chat Interface -->
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Cyber Security Assistant</h2>
+  </div>
+  <div class="card-content">
+    <!-- Chat History -->
+    <div id="chat-history" style="background: var(--surface-raised); border-radius: var(--radius-md); padding: 20px; margin-bottom: 16px; min-height: 280px; max-height: 420px; overflow-y: auto; display: flex; flex-direction: column;">
+      <div id="chat-empty" style="text-align: center; color: var(--text-muted); padding: 40px 20px;">
+        <div style="font-size: 2rem; margin-bottom: 12px;">🧠</div>
+        <div style="font-size: 0.95rem;">Select a security event above, then ask a question.</div>
+      </div>
+    </div>
+
+    <!-- Suggested Questions -->
+    <div class="copilot-suggestions" id="copilot-suggestions">
+      <button class="copilot-suggestion-chip" data-q="Why was this flagged?">Why was this flagged?</button>
+      <button class="copilot-suggestion-chip" data-q="What evidence was detected?">What evidence was detected?</button>
+      <button class="copilot-suggestion-chip" data-q="What should I do?">What should I do?</button>
+      <button class="copilot-suggestion-chip" data-q="Which indicator contributed most to the risk?">Which indicator contributed most?</button>
+      <button class="copilot-suggestion-chip" data-q="Could this be legitimate?">Could this be legitimate?</button>
+    </div>
+
+    <!-- Input Area -->
+    <div style="display: flex; gap: 12px;" id="copilot-input-row">
+      <input type="text" id="copilot-input" class="input-field" placeholder="Ask about the selected event…" style="margin: 0; flex: 1;">
+      <button class="btn btn-primary" id="copilot-send-btn">Send</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let selectedScanId = null;
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+function addMessage(text, role) {
+  document.getElementById('chat-empty').style.display = 'none';
+  const wrap = document.getElementById('chat-history');
+  const msg = document.createElement('div');
+  msg.className = 'copilot-message ' + role;
+  msg.textContent = text;
+  wrap.appendChild(msg);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function askCopilot(question) {
+  if (!question) return;
+  addMessage(question, 'user');
+
+  fetch('/api/v2/copilot', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ scan_id: selectedScanId, question })
+  })
+    .then(r => r.json())
+    .then(data => {
+      addMessage(data.answer || 'Sorry, something went wrong.', 'assistant');
+    })
+    .catch(err => {
+      console.error('Copilot error:', err);
+      addMessage('Sorry, something went wrong reaching CyberGuardian.', 'assistant');
+    });
+}
+
+document.getElementById('copilot-send-btn').addEventListener('click', () => {
+  const input = document.getElementById('copilot-input');
+  const q = input.value.trim();
+  if (q) {
+    askCopilot(q);
+    input.value = '';
+  }
+});
+
+document.getElementById('copilot-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    document.getElementById('copilot-send-btn').click();
+  }
+});
+
+document.getElementById('copilot-suggestions').addEventListener('click', (e) => {
+  const btn = e.target.closest('.copilot-suggestion-chip');
+  if (btn) askCopilot(btn.dataset.q);
+});
+
+document.getElementById('investigation-select').addEventListener('change', (e) => {
+  selectedScanId = e.target.value || null;
+  document.getElementById('chat-history').innerHTML = '<div id="chat-empty" style="text-align: center; color: var(--text-muted); padding: 40px 20px;"></div>';
+  document.getElementById('chat-empty').style.display = 'block';
+  if (selectedScanId) {
+    document.getElementById('chat-empty').innerHTML =
+      '<div style="font-size: 2rem; margin-bottom: 12px;">💬</div><div style="font-size: 0.95rem;">Ask a question about this event, or pick a suggestion below.</div>';
+  } else {
+    document.getElementById('chat-empty').innerHTML =
+      '<div style="font-size: 2rem; margin-bottom: 12px;">🧠</div><div style="font-size: 0.95rem;">Select a security event above, then ask a question.</div>';
+  }
+});
+
+// Populate the investigation selector from real history
+fetch('/api/history?limit=25')
+  .then(r => r.json())
+  .then(data => {
+    const select = document.getElementById('investigation-select');
+    const scans = (data && data.scans) || [];
+    if (!scans.length) {
+      select.innerHTML = '<option value="">No investigations yet — analyze something first</option>';
+      return;
+    }
+    select.innerHTML = '<option value="">— Select an investigation —</option>' + scans.map(s => {
+      const dt = new Date(s.timestamp);
+      const label = (s.threat_type || 'UNKNOWN').replace(/_/g, ' ') + ' · ' + s.risk_score + '/100 · ' +
+        (isNaN(dt.getTime()) ? '' : dt.toLocaleDateString());
+      return `<option value="${s.id}">${escapeHtml(label)}</option>`;
+    }).join('');
+
+    // Pre-select via ?scan_id= query param if provided (e.g. linked from
+    // an investigation page's "Ask Copilot" action).
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('scan_id')) {
+      select.value = params.get('scan_id');
+      select.dispatchEvent(new Event('change'));
+    }
+  })
+  .catch(err => {
+    console.error('History load error:', err);
+    document.getElementById('investigation-select').innerHTML = '<option value="">Could not load investigations</option>';
+  });
+</script>
+{% endblock %}

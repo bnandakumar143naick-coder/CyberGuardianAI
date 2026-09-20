@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CyberGuardian AI — See It. Scan It. Understand It. Stay Safe.</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="brand">
+    <span class="icon">🛡️</span>
+    <span>CyberGuardian AI</span>
+  </div>
+  <div class="nav-links">
+    <a href="{{ url_for('main.index') }}" class="active">Home</a>
+    <a href="{{ url_for('main.scan_page') }}">Scan</a>
+    <a href="{{ url_for('main.history_page') }}">History</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="radar">
+    <div class="radar-core">🛡️</div>
+  </div>
+  <h1>CyberGuardian AI</h1>
+  <p class="tagline">SEE IT. SCAN IT. UNDERSTAND IT. STAY SAFE.</p>
+  <p class="lede">
+    Analyse suspicious messages, links, websites and QR codes before you interact with them.
+    Take a photo or upload a screenshot — CyberGuardian breaks down the risk in plain language.
+  </p>
+  <a href="{{ url_for('main.scan_page') }}" class="btn btn-primary btn-large">📷 Scan Now</a>
+</header>
+
+<div class="action-grid">
+  <a class="action-card" href="{{ url_for('main.scan_page') }}?mode=camera">
+    <div class="icon">📷</div>
+    <h3>Scan Now</h3>
+    <p>Take a photo or upload a screenshot for full analysis.</p>
+  </a>
+  <a class="action-card" href="{{ url_for('main.scan_page') }}?mode=upload">
+    <div class="icon">🖼️</div>
+    <h3>Upload Screenshot</h3>
+    <p>Already have an image saved? Upload it directly.</p>
+  </a>
+  <a class="action-card" href="{{ url_for('main.scan_page') }}?mode=url">
+    <div class="icon">🔗</div>
+    <h3>Check URL</h3>
+    <p>Paste a link to check it for phishing indicators.</p>
+  </a>
+  <a class="action-card" href="{{ url_for('main.history_page') }}">
+    <div class="icon">📊</div>
+    <h3>Scan History</h3>
+    <p>Review past scans and your personal risk dashboard.</p>
+  </a>
+</div>
+
+<div class="section container">
+  <div class="card">
+    <span class="eyebrow">Detect → Explain → Protect</span>
+    <h2 style="margin-bottom: 14px;">How CyberGuardian looks out for you</h2>
+    <p style="color: var(--text-muted); max-width: 640px;">
+      Every scan runs the same transparent pipeline: extract text and links from your image,
+      look for behavioural red flags like urgency or credential requests, score the risk out
+      of 100, and explain exactly why — in plain language, with clear next steps. Nothing is
+      ever flagged as "guaranteed malicious." CyberGuardian shows you the evidence and lets
+      you decide.
+    </p>
+  </div>
+</div>
+
+<footer>
+  CyberGuardian AI flags <em>potential</em> phishing, scam and social-engineering indicators.
+  It is not a guarantee of safety — always verify unexpected requests independently.
+</footer>
+
+</body>
+</html>

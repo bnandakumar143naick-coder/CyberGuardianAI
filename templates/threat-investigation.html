@@ -1,0 +1,407 @@
+{% extends "base.html" %}
+
+{% block title %}Threat Investigation — CyberGuardian AI{% endblock %}
+
+{% block content %}
+<div class="page-header flex-between" style="align-items: flex-start;">
+  <div>
+    <h1 class="page-title">Threat Investigation</h1>
+    <p class="page-subtitle">Deep-dive, evidence-grounded analysis of a detected event</p>
+  </div>
+  <button class="btn btn-outline btn-small" id="export-btn" style="display:none;" onclick="window.print()">🖨 Export / Print Report</button>
+</div>
+
+<!-- Empty State -->
+<div id="empty-state" class="empty-state" style="padding: 80px 20px;">
+  <div class="empty-state-icon">🔬</div>
+  <div class="empty-state-title">No Investigation Selected</div>
+  <div class="empty-state-text">Select a threat from your scan history, or analyze a notification from the Notification Shield, to begin a detailed investigation.</div>
+  <a href="{{ url_for('main.history_page') }}" class="btn btn-primary btn-small">View History</a>
+  <a href="{{ url_for('main.notification_shield') }}" class="btn btn-outline btn-small">Notification Shield</a>
+</div>
+
+<!-- Loading state -->
+<div id="loading-state" class="empty-state" style="display:none; padding: 80px 20px;">
+  <div class="empty-state-icon">⏳</div>
+  <div class="empty-state-title">Loading Investigation…</div>
+</div>
+
+<!-- Investigation Details -->
+<div id="investigation-container" style="display: none;">
+
+  <!-- Legacy / limited-detail banner -->
+  <div id="legacy-banner" class="info-banner" style="display:none; margin-bottom: 20px;">
+    ⚠️ This scan was created before detailed evidence tracking was available (or by an older
+    endpoint), so a full evidence breakdown isn't available. Showing the summary that was saved at the time.
+  </div>
+
+  <!-- Header -->
+  <div class="card" style="margin-bottom: 24px;">
+    <div class="card-content">
+      <div style="display: grid; grid-template-columns: 1fr auto; gap: 20px; align-items: center;">
+        <div class="investigation-section" style="border: none; padding: 0;">
+          <div class="investigation-row">
+            <div class="investigation-label">Source</div>
+            <div class="investigation-value" id="inv-source">-</div>
+          </div>
+          <div class="investigation-row">
+            <div class="investigation-label">Category</div>
+            <div class="investigation-value" id="inv-threat-type">-</div>
+          </div>
+          <div class="investigation-row">
+            <div class="investigation-label">Analysis ID</div>
+            <div class="investigation-value" id="inv-scan-id">-</div>
+          </div>
+          <div class="investigation-row">
+            <div class="investigation-label">Detected</div>
+            <div class="investigation-value" id="inv-timestamp">-</div>
+          </div>
+        </div>
+        <div class="risk-score-large">
+          <div class="risk-score-number" id="inv-risk-score">0</div>
+          <div class="risk-score-max">/ 100</div>
+          <div class="risk-level-badge" id="inv-risk-badge">LOW</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Threat overview summary -->
+  <div class="card" style="margin-bottom: 24px;">
+    <div class="card-header"><h2 class="card-title">Threat Overview</h2></div>
+    <div class="card-content">
+      <p id="inv-overview-summary" style="line-height: 1.6; margin-bottom: 12px;">-</p>
+      <div id="inv-secondary-categories" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
+    </div>
+  </div>
+
+  <!-- Original content -->
+  <div class="card" style="margin-bottom: 24px;">
+    <div class="card-header"><h2 class="card-title">Original Content</h2></div>
+    <div class="card-content">
+      <div class="investigation-section" style="margin-bottom: 12px;">
+        <div class="investigation-row"><div class="investigation-label">Source App</div><div class="investigation-value" id="inv-content-app">-</div></div>
+        <div class="investigation-row"><div class="investigation-label">Sender</div><div class="investigation-value" id="inv-content-sender">-</div></div>
+      </div>
+      <div id="inv-content" style="padding: 16px; background: var(--surface-raised); border-radius: var(--radius-md); border: 1px solid var(--border); font-family: var(--font-body); font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap; word-break: break-word;">-</div>
+    </div>
+  </div>
+
+  <!-- Explainable AI hero panel -->
+  <div class="xai-hero" id="xai-hero" style="display:none;">
+    <div class="xai-hero-title">🧠 Why CyberGuardian Flagged This</div>
+    <div class="xai-hero-summary" id="xai-summary">-</div>
+
+    <div class="xai-section-title">What We Found (strongest evidence first)</div>
+    <div id="xai-why-flagged"></div>
+
+    <div class="xai-section-title">Potential Impact</div>
+    <ul class="evidence-list" id="xai-impacts" style="border-left: none;"></ul>
+
+    <div class="xai-disclaimer" id="xai-disclaimer">-</div>
+  </div>
+
+  <!-- Evidence detail cards -->
+  <div class="card" style="margin-bottom: 24px;">
+    <div class="card-header"><h2 class="card-title">Evidence Detail</h2></div>
+    <div class="card-content" id="inv-evidence-cards">
+      <p style="color: var(--text-muted);">No detailed evidence available.</p>
+    </div>
+  </div>
+
+  <!-- Risk breakdown -->
+  <div class="card" style="margin-bottom: 24px;">
+    <div class="card-header"><h2 class="card-title">Risk Contribution Breakdown</h2></div>
+    <div class="card-content">
+      <div id="inv-risk-bars"></div>
+      <div style="text-align:right; margin-top: 12px; font-weight: 700; font-family: var(--font-data);">
+        TOTAL: <span id="inv-risk-total">0</span> / 100
+      </div>
+    </div>
+  </div>
+
+  <!-- URL intelligence -->
+  <div class="card" style="margin-bottom: 24px;" id="inv-url-card">
+    <div class="card-header"><h2 class="card-title">URL Intelligence</h2></div>
+    <div class="card-content" id="inv-urls-list">
+      <p style="color: var(--text-muted);">No URLs detected in this message.</p>
+    </div>
+  </div>
+
+  <!-- Recommended action -->
+  <div class="card" style="margin-bottom: 24px;">
+    <div class="card-header"><h2 class="card-title">🛡 What Should You Do?</h2></div>
+    <div class="card-content">
+      <ul class="action-list" id="inv-actions"></ul>
+    </div>
+  </div>
+
+  <!-- Investigation timeline -->
+  <div class="card" style="margin-bottom: 24px;">
+    <div class="card-header"><h2 class="card-title">Investigation Timeline</h2></div>
+    <div class="card-content">
+      <div class="inv-timeline" id="inv-timeline"></div>
+    </div>
+  </div>
+
+  <!-- Technical details (expandable) -->
+  <div class="card" style="margin-bottom: 24px;">
+    <div class="card-header" style="cursor:pointer;" onclick="toggleTechDetails()">
+      <h2 class="card-title">Technical Details <span id="tech-toggle-icon">▸</span></h2>
+    </div>
+    <div class="card-content" id="tech-details" style="display:none;">
+      <div class="investigation-section">
+        <div class="investigation-row"><div class="investigation-label">Analysis ID</div><div class="investigation-value" id="tech-id">-</div></div>
+        <div class="investigation-row"><div class="investigation-label">Input Type</div><div class="investigation-value" id="tech-input-type">-</div></div>
+        <div class="investigation-row"><div class="investigation-label">Source App</div><div class="investigation-value" id="tech-source-app">-</div></div>
+        <div class="investigation-row"><div class="investigation-label">Detection Layers</div><div class="investigation-value" id="tech-layers">-</div></div>
+        <div class="investigation-row"><div class="investigation-label">Evidence Count</div><div class="investigation-value" id="tech-evidence-count">-</div></div>
+        <div class="investigation-row"><div class="investigation-label">Risk Engine</div><div class="investigation-value">CyberGuardian Risk Engine (evidence-based, deterministic)</div></div>
+        <div class="investigation-row"><div class="investigation-label">Explanation Status</div><div class="investigation-value" id="tech-explanation-status">-</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+function toggleTechDetails() {
+  const el = document.getElementById('tech-details');
+  const icon = document.getElementById('tech-toggle-icon');
+  const show = el.style.display === 'none';
+  el.style.display = show ? 'block' : 'none';
+  icon.textContent = show ? '▾' : '▸';
+}
+
+function loadInvestigation(scanId) {
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('loading-state').style.display = 'block';
+
+  fetch(`/api/v2/scan/${scanId}`)
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('loading-state').style.display = 'none';
+      if (data.success) {
+        displayInvestigation(data);
+      } else {
+        document.getElementById('empty-state').style.display = 'block';
+      }
+    })
+    .catch(err => {
+      console.error('Load error:', err);
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('empty-state').style.display = 'block';
+    });
+}
+
+function displayInvestigation(data) {
+  document.getElementById('investigation-container').style.display = 'block';
+  document.getElementById('export-btn').style.display = 'inline-block';
+  document.getElementById('legacy-banner').style.display = data.has_full_detail ? 'none' : 'block';
+
+  const threat = data.threat || {};
+  const risk = data.risk || {};
+  const context = data.context_analysis || {};
+  const evidence = data.evidence || {};
+  const xai = data.explainable_ai;
+
+  document.getElementById('inv-source').textContent = context.source_app || 'Unknown';
+  document.getElementById('inv-threat-type').textContent = (threat.label || (threat.primary || '-').replace(/_/g, ' '));
+  document.getElementById('inv-scan-id').textContent = '#' + (data.scan_id != null ? data.scan_id : '-');
+  document.getElementById('inv-timestamp').textContent = data.timestamp ? new Date(data.timestamp).toLocaleString() : 'Not recorded';
+
+  document.getElementById('inv-risk-score').textContent = risk.score != null ? risk.score : 0;
+  const badge = document.getElementById('inv-risk-badge');
+  const level = risk.level || 'SAFE';
+  badge.textContent = (risk.emoji || '') + ' ' + level;
+  badge.className = 'risk-level-badge ' + level;
+
+  document.getElementById('inv-overview-summary').textContent =
+    (xai && xai.summary) ? xai.summary : (threat.description || 'No summary available.');
+  const secWrap = document.getElementById('inv-secondary-categories');
+  secWrap.innerHTML = '';
+  (threat.secondary || []).forEach(s => {
+    const pill = document.createElement('span');
+    pill.className = 'severity-pill MEDIUM';
+    pill.textContent = s.replace(/_/g, ' ');
+    secWrap.appendChild(pill);
+  });
+
+  document.getElementById('inv-content-app').textContent = context.source_app || 'Unknown';
+  document.getElementById('inv-content-sender').textContent = context.sender || 'Unknown';
+  document.getElementById('inv-content').textContent = data.extracted_text || '(Original message text is not stored for this scan.)';
+
+  const heroEl = document.getElementById('xai-hero');
+  if (xai) {
+    heroEl.style.display = 'block';
+    document.getElementById('xai-summary').textContent = xai.summary || '';
+    const whyWrap = document.getElementById('xai-why-flagged');
+    whyWrap.innerHTML = '';
+    (xai.why_flagged || []).forEach(w => whyWrap.appendChild(buildEvidenceCard(w)));
+    if (!(xai.why_flagged || []).length) {
+      whyWrap.innerHTML = '<p style="color: var(--text-muted);">No specific evidence items were recorded.</p>';
+    }
+    const impactsEl = document.getElementById('xai-impacts');
+    impactsEl.innerHTML = '';
+    (xai.potential_impacts || []).forEach(i => {
+      const li = document.createElement('li');
+      li.className = 'evidence-item';
+      li.textContent = i;
+      impactsEl.appendChild(li);
+    });
+    document.getElementById('xai-disclaimer').textContent = xai.disclaimer || '';
+  } else {
+    heroEl.style.display = 'none';
+  }
+
+  const evWrap = document.getElementById('inv-evidence-cards');
+  evWrap.innerHTML = '';
+  if (xai && (xai.why_flagged || []).length) {
+    xai.why_flagged.forEach(w => evWrap.appendChild(buildEvidenceCard(w)));
+  } else if ((data.legacy_indicators || []).length) {
+    data.legacy_indicators.forEach(ind => {
+      const div = document.createElement('div');
+      div.className = 'evidence-card MEDIUM';
+      div.textContent = ind;
+      evWrap.appendChild(div);
+    });
+  } else {
+    evWrap.innerHTML = '<p style="color: var(--text-muted);">No suspicious evidence was detected in this message.</p>';
+  }
+
+  const barsWrap = document.getElementById('inv-risk-bars');
+  barsWrap.innerHTML = '';
+  const contributions = (risk.contributions || []).slice().sort((a, b) => (b.score || 0) - (a.score || 0));
+  if (contributions.length) {
+    const maxScore = Math.max.apply(null, contributions.map(c => c.score || 0).concat([1]));
+    contributions.forEach(c => {
+      const row = document.createElement('div');
+      row.className = 'risk-bar-row';
+      const pct = Math.max(4, Math.round(((c.score || 0) / maxScore) * 100));
+      row.innerHTML =
+        '<div class="risk-bar-label" title="' + escapeHtml(c.indicator) + '">' + escapeHtml(c.indicator) + '</div>' +
+        '<div class="risk-bar-track"><div class="risk-bar-fill ' + escapeHtml(c.severity || 'LOW') + '" style="width:' + pct + '%;"></div></div>' +
+        '<div class="risk-bar-value">+' + (c.score || 0) + '</div>';
+      barsWrap.appendChild(row);
+    });
+  } else {
+    barsWrap.innerHTML = '<p style="color: var(--text-muted);">No individual risk contributors were recorded for this scan.</p>';
+  }
+  document.getElementById('inv-risk-total').textContent = risk.score != null ? risk.score : 0;
+
+  const urlAnalysis = data.url_analysis || {};
+  const urlsList = document.getElementById('inv-urls-list');
+  const analyzedUrls = urlAnalysis.analyzed_urls || [];
+  if (analyzedUrls.length) {
+    urlsList.innerHTML = '';
+    analyzedUrls.forEach(u => {
+      const box = document.createElement('div');
+      box.style.cssText = 'padding: 14px; background: var(--surface-raised); border-radius: var(--radius-sm); border: 1px solid var(--border); margin-bottom: 12px;';
+      const feats = u.features || {};
+      const brand = u.brand_context || {};
+      let brandRow = '';
+      if (brand.claimed_brand) {
+        const brandText = brand.mismatch_detected
+          ? '⚠️ Claims "' + escapeHtml(brand.claimed_brand) + '" but destination differs'
+          : 'Consistent with claimed brand';
+        brandRow = '<div class="investigation-row"><div class="investigation-label">Brand relationship</div><div class="investigation-value">' + brandText + '</div></div>';
+      }
+      box.innerHTML =
+        '<div style="font-family: var(--font-data); font-size: 0.85rem; word-break: break-all; margin-bottom: 8px;">' + escapeHtml(u.url) + '</div>' +
+        '<div class="investigation-section" style="border:none; padding:0;">' +
+          '<div class="investigation-row"><div class="investigation-label">Domain</div><div class="investigation-value">' + escapeHtml(u.domain || '-') + '</div></div>' +
+          '<div class="investigation-row"><div class="investigation-label">Protocol</div><div class="investigation-value">' + (feats.uses_https ? 'HTTPS' : (feats.scheme || 'Unknown')) + '</div></div>' +
+          '<div class="investigation-row"><div class="investigation-label">IP-based</div><div class="investigation-value">' + (feats.is_ip_address ? 'Yes' : 'No') + '</div></div>' +
+          '<div class="investigation-row"><div class="investigation-label">Subdomains</div><div class="investigation-value">' + (feats.subdomain_count != null ? feats.subdomain_count : '-') + '</div></div>' +
+          brandRow +
+          '<div class="investigation-row"><div class="investigation-label">Risk contribution</div><div class="investigation-value">+' + (u.risk_contribution || 0) + '</div></div>' +
+        '</div>';
+      urlsList.appendChild(box);
+    });
+  } else {
+    urlsList.innerHTML = '<p style="color: var(--text-muted);">No URLs detected in this message.</p>';
+  }
+
+  const actionsWrap = document.getElementById('inv-actions');
+  actionsWrap.innerHTML = '';
+  const avoid = (xai && xai.avoid_actions) || [];
+  const recommended = (xai && xai.recommended_actions) || data.recommendations || [];
+  if (!avoid.length && !recommended.length) {
+    actionsWrap.innerHTML = '<li class="action-item recommended">No specific action needed — no significant threat indicators were found.</li>';
+  } else {
+    avoid.forEach(a => {
+      const li = document.createElement('li');
+      li.className = 'action-item avoid';
+      li.textContent = a;
+      actionsWrap.appendChild(li);
+    });
+    recommended.forEach(r => {
+      const li = document.createElement('li');
+      li.className = 'action-item recommended';
+      li.textContent = r;
+      actionsWrap.appendChild(li);
+    });
+  }
+
+  const timelineWrap = document.getElementById('inv-timeline');
+  const realTime = data.timestamp ? new Date(data.timestamp).toLocaleString() : null;
+  const steps = [
+    { title: 'Notification received', meta: context.source_app ? ('via ' + context.source_app) : '' },
+    { title: 'Content extracted', meta: '' },
+    { title: 'Indicators detected', meta: evidence.total_items ? (evidence.total_items + ' evidence item(s)') : 'No indicators found' },
+    { title: 'Risk calculated', meta: 'Score: ' + (risk.score != null ? risk.score : 0) + '/100 (' + level + ')' },
+    { title: 'Explanation generated', meta: xai ? 'Deterministic, evidence-grounded' : 'Not available for this scan' },
+    { title: 'Protection recommendation issued', meta: realTime ? ('Recorded ' + realTime) : 'Timestamp not recorded' },
+  ];
+  timelineWrap.innerHTML = '';
+  steps.forEach(s => {
+    const step = document.createElement('div');
+    step.className = 'inv-timeline-step';
+    step.innerHTML =
+      '<div class="inv-timeline-dot"></div>' +
+      '<div class="inv-timeline-content">' +
+        '<div class="inv-timeline-title">' + escapeHtml(s.title) + '</div>' +
+        '<div class="inv-timeline-meta">' + escapeHtml(s.meta) + '</div>' +
+      '</div>';
+    timelineWrap.appendChild(step);
+  });
+
+  document.getElementById('tech-id').textContent = '#' + (data.scan_id != null ? data.scan_id : '-');
+  document.getElementById('tech-input-type').textContent = 'notification';
+  document.getElementById('tech-source-app').textContent = context.source_app || 'Unknown';
+  document.getElementById('tech-layers').textContent = 'Message \u2192 URL \u2192 Context \u2192 Threat \u2192 Evidence \u2192 Risk';
+  document.getElementById('tech-evidence-count').textContent = evidence.total_items != null ? evidence.total_items : (data.legacy_indicators || []).length;
+  document.getElementById('tech-explanation-status').textContent = xai ? 'Generated (deterministic, rule-based)' : 'Not available for this scan';
+}
+
+function buildEvidenceCard(w) {
+  const div = document.createElement('div');
+  const severity = w.severity || 'LOW';
+  div.className = 'evidence-card ' + severity;
+  div.innerHTML =
+    '<div class="evidence-card-header">' +
+      '<div class="evidence-card-title">' +
+        '<span class="severity-pill ' + escapeHtml(severity) + '">' + escapeHtml(severity) + '</span> ' +
+        escapeHtml(w.title || '') +
+      '</div>' +
+      '<div class="evidence-card-score">+' + (w.score_contribution || 0) + '</div>' +
+    '</div>' +
+    (w.observed_evidence ? '<div class="evidence-card-observed">Observed: "' + escapeHtml(w.observed_evidence) + '"</div>' : '') +
+    '<div class="evidence-card-why">' + escapeHtml(w.explanation || '') + '</div>';
+  return div;
+}
+
+const params = new URLSearchParams(window.location.search);
+if (params.has('id')) {
+  loadInvestigation(params.get('id'));
+}
+</script>
+{% endblock %}

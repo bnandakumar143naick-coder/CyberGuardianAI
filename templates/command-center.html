@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}Command Center — CyberGuardian AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Command Center</h1>
+  <p class="page-subtitle">Your cybersecurity overview and protection status</p>
+</div>
+
+<!-- Protection Status Section -->
+<div class="card mb-3" style="grid-column: 1 / -1;">
+  <div class="card-header">
+    <h2 class="card-title">Protection Status</h2>
+  </div>
+  <div class="card-content">
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
+      <div style="padding: 20px; background: var(--surface-raised); border-radius: var(--radius-md); border: 1px solid var(--border);">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+          <span style="font-size: 1.2rem;">✓</span>
+          <span style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">Notification Shield</span>
+        </div>
+        <span class="status-indicator status-simulation">Prototype Active</span>
+      </div>
+      <div style="padding: 20px; background: var(--surface-raised); border-radius: var(--radius-md); border: 1px solid var(--border);">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+          <span style="font-size: 1.2rem;">✓</span>
+          <span style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">Threat Detection</span>
+        </div>
+        <span class="status-indicator status-active">Active</span>
+      </div>
+      <div style="padding: 20px; background: var(--surface-raised); border-radius: var(--radius-md); border: 1px solid var(--border);">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+          <span style="font-size: 1.2rem;">✓</span>
+          <span style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">URL Analysis</span>
+        </div>
+        <span class="status-indicator status-active">Available</span>
+      </div>
+      <div style="padding: 20px; background: var(--surface-raised); border-radius: var(--radius-md); border: 1px solid var(--border);">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+          <span style="font-size: 1.2rem;">✓</span>
+          <span style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">AI Explainer</span>
+        </div>
+        <span class="status-indicator status-active">Active</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Cyber Risk Score -->
+<div class="card" style="margin-bottom: 16px;">
+  <div class="card-header">
+    <h2 class="card-title">Cyber Risk Score</h2>
+  </div>
+  <div class="card-content">
+    <div class="risk-score-large">
+      <div class="risk-score-number" id="cyber-risk-score">0</div>
+      <div class="risk-score-max">/ 100</div>
+      <div class="risk-level-badge LOW" id="cyber-risk-badge">🟢 LOW</div>
+      <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 16px; margin-bottom: 0;">
+        Based on <strong id="total-scans">0</strong> analysis scans. Average risk score across all scans in history.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Latest Investigation callout -->
+<div class="card" id="latest-investigation-card" style="margin-bottom: 24px; display: none;">
+  <div class="card-header"><h2 class="card-title">Latest Investigation</h2></div>
+  <div class="card-content">
+    <div style="display:flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;">
+      <div>
+        <div style="font-weight:700;" id="latest-inv-title">-</div>
+        <div style="color: var(--text-muted); font-size: 0.85rem;" id="latest-inv-meta">-</div>
+      </div>
+      <div style="display:flex; align-items:center; gap: 14px;">
+        <span class="risk-level-badge" id="latest-inv-badge" style="margin-top:0;">-</span>
+        <a href="#" id="latest-inv-link" class="btn btn-primary btn-small">Investigate</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Security Metrics Grid -->
+<div class="grid grid-4" style="margin-bottom: 24px;">
+  <div class="metric-card">
+    <div class="metric-value" id="threats-detected">0</div>
+    <div class="metric-label">Threats Detected</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-value" id="messages-analyzed">0</div>
+    <div class="metric-label">Messages Analyzed</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-value" id="urls-analyzed">0</div>
+    <div class="metric-label">URLs Analyzed</div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-value" id="threats-blocked">0</div>
+    <div class="metric-label">High-Risk Flagged</div>
+  </div>
+</div>
+
+<!-- Top Threat Categories -->
+<div class="card" style="margin-bottom: 24px;">
+  <div class="card-header"><h2 class="card-title">Top Threat Categories</h2></div>
+  <div class="card-content">
+    <div id="top-categories-list" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+      <div class="empty-state" style="grid-column: 1 / -1; padding: 20px;">
+        <div style="font-size: 0.85rem; color: var(--text-muted);">No scans yet.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Security Activity --><div class="card">
+  <div class="card-header">
+    <h2 class="card-title">Recent Security Activity</h2>
+  </div>
+  <div class="card-content">
+    <div id="activity-list" style="display: flex; flex-direction: column; gap: 12px;">
+      <!-- Activity items will be populated by JavaScript -->
+      <div class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <div class="empty-state-title">No Activity Yet</div>
+        <div class="empty-state-text">Scan your first message or URL to start building security history.</div>
+        <a href="{{ url_for('main.threat_scanner') }}" class="btn btn-primary btn-small">Scan Now</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="grid grid-3" style="margin-top: 24px;">
+  <a href="{{ url_for('main.threat_scanner') }}?mode=text" class="card" style="text-decoration: none; cursor: pointer; transition: all 0.2s;">
+    <div style="text-align: center; padding: 8px 0;">
+      <div style="font-size: 2rem; margin-bottom: 12px;">📝</div>
+      <h3 style="font-size: 0.95rem; margin-bottom: 6px;">Analyze Message</h3>
+      <p style="color: var(--text-muted); font-size: 0.8rem; margin: 0;">Paste suspicious content</p>
+    </div>
+  </a>
+  <a href="{{ url_for('main.threat_scanner') }}?mode=url" class="card" style="text-decoration: none; cursor: pointer; transition: all 0.2s;">
+    <div style="text-align: center; padding: 8px 0;">
+      <div style="font-size: 2rem; margin-bottom: 12px;">🔗</div>
+      <h3 style="font-size: 0.95rem; margin-bottom: 6px;">Check URL</h3>
+      <p style="color: var(--text-muted); font-size: 0.8rem; margin: 0;">Analyze a link</p>
+    </div>
+  </a>
+  <a href="{{ url_for('main.threat_scanner') }}?mode=image" class="card" style="text-decoration: none; cursor: pointer; transition: all 0.2s;">
+    <div style="text-align: center; padding: 8px 0;">
+      <div style="font-size: 2rem; margin-bottom: 12px;">📸</div>
+      <h3 style="font-size: 0.95rem; margin-bottom: 6px;">Scan Screenshot</h3>
+      <p style="color: var(--text-muted); font-size: 0.8rem; margin: 0;">Upload an image</p>
+    </div>
+  </a>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : String(str);
+  return div.innerHTML;
+}
+
+function riskLevelForScore(score) {
+  if (score >= 80) return { level: 'CRITICAL', emoji: '🔴' };
+  if (score >= 60) return { level: 'HIGH', emoji: '🟠' };
+  if (score >= 40) return { level: 'MEDIUM', emoji: '🟡' };
+  if (score >= 20) return { level: 'LOW', emoji: '🟢' };
+  return { level: 'SAFE', emoji: '🟢' };
+}
+
+Promise.all([
+  fetch('/api/dashboard').then(r => r.json()),
+  fetch('/api/v2/analytics').then(r => r.json()).catch(() => ({ success: false })),
+]).then(([dashboardData, analyticsData]) => {
+  if (!dashboardData.success || !dashboardData.stats) return;
+  const stats = dashboardData.stats;
+  const detailStats = (analyticsData && analyticsData.success) ? (analyticsData.detail_stats || {}) : {};
+
+  document.getElementById('total-scans').textContent = stats.total_scans || 0;
+  document.getElementById('threats-detected').textContent = (stats.high_risk || 0) + (stats.medium_risk || 0);
+  document.getElementById('messages-analyzed').textContent = stats.total_scans || 0;
+  // Real count of URLs actually seen across analyzed notifications — not
+  // an estimate derived from total_scans.
+  document.getElementById('urls-analyzed').textContent = detailStats.urls_analyzed || 0;
+  document.getElementById('threats-blocked').textContent = stats.high_risk || 0;
+
+  // Real average of every stored risk_score — not a hand-weighted guess.
+  const avgScore = stats.average_risk_score || 0;
+  const { level, emoji } = riskLevelForScore(avgScore);
+  document.getElementById('cyber-risk-score').textContent = avgScore;
+  const badge = document.getElementById('cyber-risk-badge');
+  badge.textContent = emoji + ' ' + level;
+  badge.className = 'risk-level-badge ' + level;
+
+  // Latest investigation callout
+  const recentScans = stats.recent_scans || [];
+  if (recentScans.length > 0) {
+    const latest = recentScans[0];
+    const card = document.getElementById('latest-investigation-card');
+    card.style.display = 'block';
+    document.getElementById('latest-inv-title').textContent =
+      (latest.threat_type || '').replace(/_/g, ' ') + ' — ' + latest.input_type;
+    document.getElementById('latest-inv-meta').textContent =
+      new Date(latest.timestamp).toLocaleString();
+    const b = document.getElementById('latest-inv-badge');
+    b.textContent = latest.risk_score + '/100 · ' + latest.risk_level;
+    b.className = 'risk-level-badge ' + latest.risk_level;
+    document.getElementById('latest-inv-link').href = '/threat-investigation?id=' + latest.id;
+  }
+
+  // Top threat categories
+  const threatDist = stats.threat_distribution || {};
+  const catList = document.getElementById('top-categories-list');
+  const catEntries = Object.entries(threatDist).sort((a, b) => b[1] - a[1]).slice(0, 6);
+  if (catEntries.length) {
+    catList.innerHTML = catEntries.map(([cat, count]) => `
+      <div style="padding: 12px; background: var(--surface-raised); border-radius: var(--radius-sm); display:flex; justify-content:space-between;">
+        <span style="font-size:0.85rem; font-weight:600;">${escapeHtml(cat.replace(/_/g, ' '))}</span>
+        <span style="font-family: var(--font-data); font-weight:700; color: var(--accent-2);">${count}</span>
+      </div>
+    `).join('');
+  }
+
+  // Recent activity — each item links through to its full investigation
+  const activityList = document.getElementById('activity-list');
+  if (recentScans.length === 0) {
+    activityList.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">📭</div>
+        <div class="empty-state-title">No Activity Yet</div>
+        <div class="empty-state-text">Scan your first message or URL to start building security history.</div>
+        <a href="{{ url_for('main.threat_scanner') }}" class="btn btn-primary btn-small">Scan Now</a>
+      </div>
+    `;
+  } else {
+    activityList.innerHTML = recentScans.map(scan => `
+      <div style="padding: 14px; background: var(--surface-raised); border-radius: var(--radius-sm); border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; cursor: pointer;"
+           onclick="window.location.href='/threat-investigation?id=${scan.id}'">
+        <div>
+          <div style="font-size: 0.85rem; font-weight: 600; color: var(--text); margin-bottom: 4px;">
+            ${escapeHtml((scan.threat_type || '').replace(/_/g, ' '))}
+          </div>
+          <div style="font-size: 0.75rem; color: var(--text-muted);">
+            ${escapeHtml((scan.summary || '').substring(0, 60))}${(scan.summary || '').length > 60 ? '...' : ''}
+          </div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-family: var(--font-data); font-size: 0.9rem; font-weight: 600; margin-bottom: 4px;">
+            ${scan.risk_score}/100
+          </div>
+          <span class="risk-level-badge ${escapeHtml(scan.risk_level)}">
+            ${escapeHtml(scan.risk_level)}
+          </span>
+        </div>
+      </div>
+    `).join('');
+  }
+}).catch(err => console.error('Dashboard load error:', err));
+</script>
+{% endblock %}

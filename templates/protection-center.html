@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}Protection Center — CyberGuardian AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Protection Center</h1>
+  <p class="page-subtitle">Security module status and controls</p>
+</div>
+
+<!-- Protection Modules -->
+<div class="grid grid-2" style="margin-bottom: 24px;">
+  <!-- Notification Shield -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Notification Shield</h3>
+    </div>
+    <div class="card-content">
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 16px;">
+        Real-time monitoring of incoming notifications from messaging and communication apps.
+      </p>
+      <span class="status-indicator status-simulation">Prototype/Simulation</span>
+      <div class="card-actions">
+        <a href="{{ url_for('main.notification_shield') }}" class="btn btn-secondary btn-small">View</a>
+        <button class="btn btn-outline btn-small">Configure</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Threat Detection -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Threat Detection</h3>
+    </div>
+    <div class="card-content">
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 16px;">
+        Advanced pattern matching for behavioral threat signals including phishing, scams, and social engineering.
+      </p>
+      <span class="status-indicator status-active">Active</span>
+      <div class="card-actions">
+        <button class="btn btn-secondary btn-small">Status</button>
+        <button class="btn btn-outline btn-small">Advanced</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- URL Intelligence -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">URL Intelligence</h3>
+    </div>
+    <div class="card-content">
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 16px;">
+        Link analysis with domain reputation, suspicious patterns, and redirect detection.
+      </p>
+      <span class="status-indicator status-active">Available</span>
+      <div class="card-actions">
+        <a href="{{ url_for('main.url_intelligence') }}" class="btn btn-secondary btn-small">Details</a>
+        <button class="btn btn-outline btn-small">Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Explainable AI -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Explainable AI</h3>
+    </div>
+    <div class="card-content">
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 16px;">
+        Transparent threat analysis with clear evidence and reasoning for every detection.
+      </p>
+      <span class="status-indicator status-active">Active</span>
+      <div class="card-actions">
+        <button class="btn btn-secondary btn-small">How it Works</button>
+        <button class="btn btn-outline btn-small">Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Security History -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Security History</h3>
+    </div>
+    <div class="card-content">
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 16px;">
+        Complete scan and threat history with detailed analysis records.
+      </p>
+      <span class="status-indicator status-active">Enabled</span>
+      <div class="card-actions">
+        <a href="{{ url_for('main.history_page') }}" class="btn btn-secondary btn-small">View</a>
+        <button class="btn btn-outline btn-small">Export</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- OCR Analysis -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">OCR Analysis</h3>
+    </div>
+    <div class="card-content">
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 16px;">
+        Optical character recognition for screenshot and image text extraction.
+      </p>
+      <span class="status-indicator status-active">Available</span>
+      <div class="card-actions">
+        <button class="btn btn-secondary btn-small">Test</button>
+        <button class="btn btn-outline btn-small">Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Analysis -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">QR Analysis</h3>
+    </div>
+    <div class="card-content">
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 16px;">
+        QR code detection and payload analysis with threat scoring.
+      </p>
+      <span class="status-indicator status-active">Available</span>
+      <div class="card-actions">
+        <button class="btn btn-secondary btn-small">Test</button>
+        <button class="btn btn-outline btn-small">Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Cyber Copilot -->
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">AI Cyber Copilot</h3>
+    </div>
+    <div class="card-content">
+      <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 16px;">
+        Context-aware AI assistant for security questions and threat explanations.
+      </p>
+      <span class="status-indicator status-coming">Coming Soon</span>
+      <div class="card-actions">
+        <button class="btn btn-secondary btn-small" disabled>Preview</button>
+        <button class="btn btn-outline btn-small" disabled>Settings</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- System Information -->
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title">System Information</h2>
+  </div>
+  <div class="card-content">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+      <div>
+        <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 6px;">Version</div>
+        <div style="font-family: var(--font-data); font-weight: 600;">1.0.0-phase1</div>
+      </div>
+      <div>
+        <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 6px;">Database</div>
+        <div style="font-family: var(--font-data); font-weight: 600;">SQLite (Local)</div>
+      </div>
+      <div>
+        <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 6px;">Analysis Engine</div>
+        <div style="font-family: var(--font-data); font-weight: 600;">Pattern + Behavioral</div>
+      </div>
+      <div>
+        <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 6px;">Status</div>
+        <div style="font-family: var(--font-data); font-weight: 600; color: var(--risk-low);">✓ Operational</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

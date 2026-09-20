@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scan Result — CyberGuardian AI</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="brand">
+    <span class="icon">🛡️</span>
+    <span>CyberGuardian AI</span>
+  </div>
+  <div class="nav-links">
+    <a href="{{ url_for('main.index') }}">Home</a>
+    <a href="{{ url_for('main.scan_page') }}">Scan</a>
+    <a href="{{ url_for('main.history_page') }}">History</a>
+  </div>
+</nav>
+
+<div class="container section" id="result-root">
+  <div class="empty-state" id="empty-state">
+    <p>No scan result to show yet.</p>
+    <a href="{{ url_for('main.scan_page') }}" class="btn btn-primary">Start a Scan</a>
+  </div>
+
+  <div id="result-content" style="display:none;">
+
+    <div class="result-header">
+      <div class="score-ring-wrap">
+        <svg viewBox="0 0 120 120" width="180" height="180">
+          <circle class="score-ring-bg" cx="60" cy="60" r="52"></circle>
+          <circle class="score-ring-fg" id="score-ring-fg" cx="60" cy="60" r="52"></circle>
+        </svg>
+        <div class="score-ring-label">
+          <span class="num" id="score-num">0</span>
+          <span class="den">/ 100</span>
+        </div>
+      </div>
+      <div class="risk-badge" id="risk-badge">
+        <span id="risk-emoji"></span> <span id="risk-level-text"></span> RISK
+      </div>
+      <h2 class="threat-name" id="threat-name">—</h2>
+    </div>
+
+    <div id="status-message" class="info-banner" style="display:none;"></div>
+
+    <div class="card">
+      <span class="eyebrow">Why is this suspicious?</span>
+      <p class="explanation-text" id="explanation-text"></p>
+    </div>
+
+    <div class="card">
+      <span class="eyebrow">Detected Indicators</span>
+      <ul class="indicator-list" id="indicator-list"></ul>
+      <p id="no-indicators" style="display:none; color: var(--text-muted); margin-top:10px;">
+        No significant indicators were detected in this content.
+      </p>
+    </div>
+
+    <div class="card">
+      <span class="eyebrow">Recommended Action</span>
+      <ul class="rec-list" id="rec-list"></ul>
+      <p class="disclaimer">
+        This does not guarantee the content is completely safe or unsafe. CyberGuardian
+        flags <em>potential</em> indicators — always verify unexpected requests independently
+        using an organisation's official app, website, or phone number.
+      </p>
+    </div>
+
+    <div class="result-actions">
+      <a href="{{ url_for('main.scan_page') }}" class="btn btn-primary">🔁 Scan Again</a>
+      <a href="{{ url_for('main.history_page') }}" class="btn btn-outline">📊 View Scan History</a>
+    </div>
+  </div>
+</div>
+
+<footer>
+  CyberGuardian AI • Detect → Explain → Protect
+</footer>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script>
+(function () {
+  const raw = sessionStorage.getItem("cg_last_result");
+  const emptyState = document.getElementById("empty-state");
+  const content = document.getElementById("result-content");
+
+  if (!raw) {
+    emptyState.style.display = "block";
+    return;
+  }
+
+  let result;
+  try {
+    result = JSON.parse(raw);
+  } catch (e) {
+    emptyState.style.display = "block";
+    return;
+  }
+
+  content.style.display = "block";
+
+  const level = result.risk_level || "LOW";
+  const score = result.risk_score || 0;
+
+  document.getElementById("score-num").textContent = score;
+  document.getElementById("risk-emoji").textContent = result.risk_emoji || "🟢";
+  document.getElementById("risk-level-text").textContent = level;
+  document.getElementById("risk-badge").classList.add(level);
+  document.getElementById("threat-name").textContent =
+    "Potential " + (result.threat_type || "UNKNOWN").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+  const ringColors = { LOW: "#2ECC71", MEDIUM: "#F1C40F", HIGH: "#F5943A", CRITICAL: "#F0473E" };
+  const ring = document.getElementById("score-ring-fg");
+  const circumference = 2 * Math.PI * 52;
+  ring.style.stroke = ringColors[level] || "#2ECC71";
+  ring.style.strokeDasharray = circumference;
+  ring.style.strokeDashoffset = circumference - (score / 100) * circumference;
+
+  document.getElementById("explanation-text").textContent = result.explanation || "";
+
+  if (result.status_message) {
+    const sm = document.getElementById("status-message");
+    sm.style.display = "block";
+    sm.textContent = result.status_message;
+  }
+
+  const indicatorList = document.getElementById("indicator-list");
+  const indicators = result.indicators || [];
+  if (indicators.length === 0) {
+    document.getElementById("no-indicators").style.display = "block";
+  } else {
+    indicators.forEach(ind => {
+      const li = document.createElement("li");
+      li.textContent = "🔴 " + ind;
+      indicatorList.appendChild(li);
+    });
+  }
+
+  const recList = document.getElementById("rec-list");
+  const recs = result.recommendations || [];
+  recs.forEach(rec => {
+    const li = document.createElement("li");
+    const isDont = /don'?t|do not|avoid|never/i.test(rec);
+    li.className = isDont ? "dont" : "do";
+    li.textContent = (isDont ? "❌ " : "✅ ") + rec;
+    recList.appendChild(li);
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}URL Intelligence — CyberGuardian AI{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">URL Intelligence</h1>
+  <p class="page-subtitle">Comprehensive analysis of links and web resources</p>
+</div>
+
+<!-- URL Analysis Form -->
+<div class="card" style="margin-bottom: 24px;">
+  <div class="card-header">
+    <h2 class="card-title">Analyze URL</h2>
+  </div>
+  <div class="card-content">
+    <div class="input-group">
+      <label class="input-label">Enter URL to analyze</label>
+      <input id="url-input" class="input-field" type="url" placeholder="https://example.com or http://suspicious-domain.xyz">
+    </div>
+    <button class="btn btn-primary btn-large btn-block" onclick="analyzeURL()">Analyze URL</button>
+  </div>
+</div>
+
+<!-- Analysis Results -->
+<div id="results-container" style="display: none;">
+  <!-- URL Characteristics -->
+  <div class="card" style="margin-bottom: 24px;">
+    <div class="card-header">
+      <h2 class="card-title">URL Characteristics</h2>
+    </div>
+    <div class="card-content">
+      <div class="investigation-section">
+        <div class="investigation-row">
+          <div class="investigation-label">Full URL</div>
+          <div class="investigation-value" id="url-display">-</div>
+        </div>
+        <div class="investigation-row">
+          <div class="investigation-label">Domain</div>
+          <div class="investigation-value" id="domain-display">-</div>
+        </div>
+        <div class="investigation-row">
+          <div class="investigation-label">Protocol</div>
+          <div class="investigation-value" id="protocol-display">-</div>
+        </div>
+        <div class="investigation-row">
+          <div class="investigation-label">Port</div>
+          <div class="investigation-value" id="port-display">-</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Risk Assessment -->
+  <div class="card" style="margin-bottom: 24px;">
+    <div class="card-header">
+      <h2 class="card-title">Risk Assessment</h2>
+    </div>
+    <div class="card-content">
+      <div class="risk-score-large">
+        <div class="risk-score-number" id="url-risk-score">0</div>
+        <div class="risk-score-max">/ 100</div>
+        <div class="risk-level-badge" id="risk-badge">LOW</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Suspicious Patterns -->
+  <div class="card">
+    <div class="card-header">
+      <h2 class="card-title">Detected Indicators</h2>
+    </div>
+    <div class="card-content">
+      <div id="indicators-list">
+        <div class="empty-state">
+          <div style="font-size: 0.9rem; color: var(--text-muted);">No suspicious patterns detected</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Empty State -->
+<div id="empty-state">
+  <div class="empty-state" style="padding: 80px 20px;">
+    <div class="empty-state-icon">🔗</div>
+    <div class="empty-state-title">URL Intelligence Analysis</div>
+    <div class="empty-state-text">Enter a URL above to get comprehensive security analysis including domain information, HTTPS status, suspicious patterns, and threat indicators.</div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function analyzeURL() {
+  const url = document.getElementById('url-input').value.trim();
+  if (!url) {
+    alert('Please enter a URL');
+    return;
+  }
+  
+  fetch('/api/analyze-url', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ url: url })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.success) {
+      displayResults(data, url);
+    } else {
+      alert('Error: ' + (data.message || 'Analysis failed'));
+    }
+  })
+  .catch(err => alert('Error: ' + err.message));
+}
+
+function displayResults(data, url) {
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('results-container').style.display = 'block';
+  
+  // Parse URL
+  try {
+    const urlObj = new URL(url);
+    document.getElementById('url-display').textContent = url;
+    document.getElementById('domain-display').textContent = urlObj.hostname;
+    document.getElementById('protocol-display').textContent = urlObj.protocol.replace(':', '').toUpperCase();
+    document.getElementById('port-display').textContent = urlObj.port || 'default';
+  } catch (e) {
+    document.getElementById('url-display').textContent = url;
+    document.getElementById('domain-display').textContent = 'Invalid URL';
+  }
+  
+  // Risk score
+  const riskScore = data.risk_score || 0;
+  document.getElementById('url-risk-score').textContent = riskScore;
+  
+  const badge = document.getElementById('risk-badge');
+  badge.textContent = '🟢 LOW RISK';
+  if (riskScore >= 75) {
+    badge.textContent = '🔴 CRITICAL RISK';
+    badge.className = 'risk-level-badge CRITICAL';
+  } else if (riskScore >= 60) {
+    badge.textContent = '🟠 HIGH RISK';
+    badge.className = 'risk-level-badge HIGH';
+  } else if (riskScore >= 40) {
+    badge.textContent = '🟡 MEDIUM RISK';
+    badge.className = 'risk-level-badge MEDIUM';
+  } else {
+    badge.className = 'risk-level-badge LOW';
+  }
+  
+  // Indicators
+  const indicators = data.indicators || [];
+  const indicatorsList = document.getElementById('indicators-list');
+  if (indicators.length > 0) {
+    indicatorsList.innerHTML = indicators.map(indicator => `
+      <div class="evidence-item">
+        ${indicator}
+      </div>
+    `).join('');
+  } else {
+    indicatorsList.innerHTML = `
+      <div class="empty-state" style="padding: 40px 20px;">
+        <div style="font-size: 0.9rem; color: var(--text-muted);">No suspicious patterns detected</div>
+      </div>
+    `;
+  }
+}
+
+// Allow Enter to submit
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('url-input').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') analyzeURL();
+  });
+});
+</script>
+{% endblock %}

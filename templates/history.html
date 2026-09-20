@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scan History — CyberGuardian AI</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="brand">
+    <span class="icon">🛡️</span>
+    <span>CyberGuardian AI</span>
+  </div>
+  <div class="nav-links">
+    <a href="{{ url_for('main.index') }}">Home</a>
+    <a href="{{ url_for('main.scan_page') }}">Scan</a>
+    <a href="{{ url_for('main.history_page') }}" class="active">History</a>
+  </div>
+</nav>
+
+<div class="container section">
+  <span class="eyebrow">Dashboard</span>
+  <h2 style="margin-bottom: 20px;">Your Scan History</h2>
+
+  <div class="stats-grid">
+    <div class="stat-card"><div class="value" id="stat-total">0</div><div class="label">Total Scans</div></div>
+    <div class="stat-card"><div class="value" style="color: var(--risk-critical);" id="stat-high">0</div><div class="label">🔴 High Risk</div></div>
+    <div class="stat-card"><div class="value" style="color: var(--risk-medium);" id="stat-medium">0</div><div class="label">🟠 Medium Risk</div></div>
+    <div class="stat-card"><div class="value" style="color: var(--risk-low);" id="stat-low">0</div><div class="label">🟢 Low Risk</div></div>
+  </div>
+
+  <div class="chart-wrap">
+    <span class="eyebrow">Threat Distribution</span>
+    <canvas id="threat-chart" height="90"></canvas>
+  </div>
+
+  <input type="text" id="history-search" class="history-search" placeholder="Search by threat type or summary…">
+
+  <div class="filter-bar" id="severity-filter-bar">
+    <span class="filter-chip active" data-severity="ALL">ALL</span>
+    <span class="filter-chip" data-severity="CRITICAL">CRITICAL</span>
+    <span class="filter-chip" data-severity="HIGH">HIGH</span>
+    <span class="filter-chip" data-severity="MEDIUM">MEDIUM</span>
+    <span class="filter-chip" data-severity="LOW">LOW</span>
+    <span class="filter-chip" data-severity="SAFE">SAFE</span>
+  </div>
+
+  <div class="filter-bar" id="category-filter-bar">
+    <span class="filter-chip active" data-category="ALL">All categories</span>
+    <!-- Populated dynamically from actual scan data -->
+  </div>
+
+  <div class="card" style="padding:0; overflow:hidden;">
+    <table class="history-table" id="history-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Threat</th>
+          <th>Risk</th>
+          <th>Score</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody id="history-tbody"></tbody>
+    </table>
+    <div class="empty-state" id="history-empty" style="display:none;">
+      <p>No scans yet — your history will appear here after your first scan.</p>
+      <a href="{{ url_for('main.scan_page') }}" class="btn btn-primary">Start a Scan</a>
+    </div>
+    <div class="empty-state" id="history-no-results" style="display:none;">
+      <p>No scans match the current search/filter.</p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  CyberGuardian AI • Detect → Explain → Protect
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script src="{{ url_for('static', filename='js/history.js') }}"></script>
+</body>
+</html>
